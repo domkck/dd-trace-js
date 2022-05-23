@@ -125,7 +125,7 @@ function callHandle (layer, handle, req, args) {
         const route = context.stack.join('')
 
         // Longer route is more likely to be the actual route handler route.
-        if (route.length > context.route.length) {
+        if (isMoreSpecificThan(route, context.route)) {
           context.route = route
         }
 
@@ -138,6 +138,22 @@ function callHandle (layer, handle, req, args) {
     return handle.apply(layer, args)
   })
 }
+
+function isMoreSpecificThan(routeA, routeB) {
+  if (routeIsRegex(routeB)) {
+    const re = routeToRegex(routeB);
+    return re.test(routeA);
+  }
+  return routeA.startsWith(routeB);
+}
+
+function routeIsRegex(route) {
+  return route.startsWith('(/') && route.endsWith('/)');
+}
+
+function routeToRegex(route) {
+  return new RegExp(route.replace(/^\(\//, '').replace(/\/\)$/, ''));
+                                 }
 
 function extractMatchers (fn) {
   const arg = flatten([].concat(fn))
